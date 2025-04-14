@@ -6,6 +6,7 @@ use App\Http\Controllers\Admin\RolesController;
 use App\Http\Controllers\Admin\UsersController;
 use App\Http\Controllers\Admin\AuditLogsController;
 use App\Http\Controllers\Admin\PatientRecordsController;
+use App\Http\Controllers\Admin\ProcessTrackingController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\ChangePasswordController;
@@ -46,6 +47,12 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.', 'middleware' => ['auth']], 
     Route::post('patient-records/parse-csv-import', [PatientRecordsController::class, 'parseCsvImport'])->name('patient-records.parseCsvImport');
     Route::post('patient-records/process-csv-import', [PatientRecordsController::class, 'processCsvImport'])->name('patient-records.processCsvImport');
     Route::resource('patient-records', PatientRecordsController::class);
+
+    //process tracking
+    Route::resource('process-tracking', ProcessTrackingController::class)->only(['index', 'show']);
+    Route::post('process-tracking/{id}/approve', [ProcessTrackingController::class, 'approve'])->name('process-tracking.approve');
+
+    
 });
 
 Route::group(['prefix' => 'profile', 'as' => 'profile.', 'middleware' => ['auth']], function () {

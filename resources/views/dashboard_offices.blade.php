@@ -112,8 +112,8 @@
                                 <div class="card-body pb-0 d-flex justify-content-between align-items-center mb-4">
                                     <!-- Progress rate number on the left -->
                                     <div>
-                                        <div class="text-value">{{ number_format(40) }}</div> <!-- Replace with dynamic value -->
-                                        <div>placeholder</div>
+                                        <div class="text-value">{{ number_format($totalSubmitted) }}</div> <!-- Replace with dynamic value -->
+                                        <div>Total Submitted</div>
                                     </div>
                                     
                                     <!-- Icon on the right -->

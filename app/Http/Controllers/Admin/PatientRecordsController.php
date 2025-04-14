@@ -28,12 +28,21 @@ class PatientRecordsController extends Controller
     public function create()
     {
         abort_if(Gate::denies('patient_record_create'), Response::HTTP_FORBIDDEN, '403 Forbidden');
-
-        return view('admin.patientRecords.create');
+    
+        // Auto-generate control number
+        $latestId = PatientRecord::withTrashed()->max('id') + 1;
+        $today = now()->format('Ymd');
+        $controlNumber = 'CSWD-' . $today . '-' . str_pad($latestId, 4, '0', STR_PAD_LEFT);
+    
+        return view('admin.patientRecords.create', compact('controlNumber'));
     }
+    
 
     public function store(StorePatientRecordRequest $request)
     {
+        $request->merge([
+            'status' => $request->status ?: 'Submitted', 
+        ]);
         $patientRecord = PatientRecord::create($request->all());
 
         return redirect()->route('admin.patient-records.index');
@@ -79,4 +88,7 @@ class PatientRecordsController extends Controller
 
         return response(null, Response::HTTP_NO_CONTENT);
     }
+    
+
+
 }

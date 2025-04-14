@@ -68,6 +68,7 @@ class HomeController
             $totalBurialPatient = PatientRecord::where('case_category', 'Burial Assistance')->count();
             $totalEducationalPatient = PatientRecord::where('case_category', 'Educational Assistance')->count();
             $totalMedicalPatient = PatientRecord::where('case_category', 'Medical Assistance')->count();
+            $totalSubmitted = PatientRecord::where('status', 'Submitted')->count();
 
             // bar charts
             $barchartSettings = [
@@ -129,7 +130,7 @@ class HomeController
             'totalPatients', 
             'totalBurialPatient', 
             'totalEducationalPatient', 
-            'totalMedicalPatient', 'barangayChart','lineChart','availableYears'));
+            'totalMedicalPatient', 'barangayChart','lineChart','availableYears','totalSubmitted'));
         }
     }
 }

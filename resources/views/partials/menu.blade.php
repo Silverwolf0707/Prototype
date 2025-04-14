@@ -86,6 +86,14 @@
                             </a>
                         </li>
                     @endcan
+                    @can('process_tracking_access')
+                    <li class="c-sidebar-nav-item">
+                     <a href="{{ route('admin.process-tracking.index') }}" class="c-sidebar-nav-link {{ request()->is('admin/process-tracking') || request()->is('admin/process-tracking/*') ? 'c-active' : '' }}">
+                        <i class="fa-fw fas fa-stream c-sidebar-nav-icon"></i>
+                        {{ __('Process Tracking') }}
+                     </a>
+                    </li>
+                @endcan
                 </ul>
             </li>
         @endcan

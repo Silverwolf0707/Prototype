@@ -10,8 +10,8 @@
 
   <title>{{ trans('panel.site_title') }}</title>
   <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" rel="stylesheet" />
-  <!-- Add this in your <head> section -->
-<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/flowbite@1.6.3/dist/flowbite.min.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
 
   <link href="https://use.fontawesome.com/releases/v5.2.0/css/all.css" rel="stylesheet" />
   <link href="https://cdn.datatables.net/1.10.19/css/jquery.dataTables.min.css" rel="stylesheet" />
@@ -112,10 +112,10 @@
   <script src="https://cdn.datatables.net/select/1.3.0/js/dataTables.select.min.js"></script>
   <script src="https://cdn.ckeditor.com/ckeditor5/16.0.0/classic/ckeditor.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.22.2/moment.min.js"></script>
-  <script
-    src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datetimepicker/4.17.47/js/bootstrap-datetimepicker.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datetimepicker/4.17.47/js/bootstrap-datetimepicker.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.5/js/select2.full.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/dropzone/5.5.1/min/dropzone.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/flowbite@1.6.3/dist/flowbite.min.js"></script>
   <script src="{{ asset('js/main.js') }}"></script>
 
   <script>
@@ -135,99 +135,90 @@
 
       $.extend(true, $.fn.dataTable.Buttons.defaults.dom.button, { className: 'btn' })
       $.extend(true, $.fn.dataTable.defaults, {
-        language: {
-          url: languages['{{ app()->getLocale() }}']
-        },
-        columnDefs: [{
-          orderable: false,
-          className: 'select-checkbox',
-          targets: 0
-        },
-        {
-          orderable: false,
-          searchable: false,
-          targets: -1
-        }
-        ],
-        select: {
-          style: 'multi+shift',
-          selector: 'td:first-child'
-        },
-        order: [],
-        scrollX: true,
-        pageLength: 100,
-        dom: 'lBfrtip<"actions">',
-        buttons: [{
-          extend: 'selectAll',
-          className: 'btn-primary',
-          text: selectAllButtonTrans,
-          exportOptions: {
-            columns: ':visible'
-          },
-          action: function (e, dt) {
-            e.preventDefault()
-            dt.rows().deselect();
-            dt.rows({ search: 'applied' }).select();
-          }
-        },
-        {
-          extend: 'selectNone',
-          className: 'btn-primary',
-          text: selectNoneButtonTrans,
-          exportOptions: {
-            columns: ':visible'
-          }
-        },
-        {
-          extend: 'copy',
-          className: 'btn-default',
-          text: copyButtonTrans,
-          exportOptions: {
-            columns: ':visible'
-          }
-        },
-        {
-          extend: 'csv',
-          className: 'btn-default',
-          text: csvButtonTrans,
-          exportOptions: {
-            columns: ':visible'
-          }
-        },
-        {
-          extend: 'excel',
-          className: 'btn-default',
-          text: excelButtonTrans,
-          exportOptions: {
-            columns: ':visible'
-          }
-        },
-        {
-          extend: 'pdf',
-          className: 'btn-default',
-          text: pdfButtonTrans,
-          exportOptions: {
-            columns: ':visible'
-          }
-        },
-        {
-          extend: 'print',
-          className: 'btn-default',
-          text: printButtonTrans,
-          exportOptions: {
-            columns: ':visible'
-          }
-        },
-        {
-          extend: 'colvis',
-          className: 'btn-default',
-          text: colvisButtonTrans,
-          exportOptions: {
-            columns: ':visible'
-          }
-        }
-        ]
-      });
+  language: {
+    url: languages['{{ app()->getLocale() }}']
+  },
+  columnDefs: [{
+    orderable: false,
+    className: 'select-checkbox',
+    targets: 0
+  },
+  {
+    orderable: false,
+    searchable: false,
+    targets: -1
+  }],
+  select: {
+    style: 'multi+shift',
+    selector: 'td:first-child'
+  },
+  order: [],
+  scrollX: true,
+  pageLength: 100,
+  dom: 'lBfrtip<"actions">',
+  buttons: [{
+    extend: 'selectAll',
+    className: 'btn-primary',
+    text: selectAllButtonTrans,
+    exportOptions: {
+      columns: ':visible:not(:first-child):not(:last-child)' // Exclude first (checkbox) and last (action) columns
+    },
+    action: function (e, dt) {
+      e.preventDefault()
+      dt.rows().deselect();
+      dt.rows({ search: 'applied' }).select();
+    }
+  },
+  {
+    extend: 'selectNone',
+    className: 'btn-primary',
+    text: selectNoneButtonTrans,
+    exportOptions: {
+      columns: ':visible:not(:first-child):not(:last-child)' // Exclude first (checkbox) and last (action) columns
+    }
+  },
+  {
+    extend: 'copy',
+    className: 'btn-default',
+    text: copyButtonTrans,
+    exportOptions: {
+      columns: ':visible:not(:first-child):not(:last-child)' // Exclude first (checkbox) and last (action) columns
+    }
+  },
+  {
+    extend: 'csv',
+    className: 'btn-default',
+    text: csvButtonTrans,
+    exportOptions: {
+      columns: ':visible:not(:first-child):not(:last-child)' // Exclude first (checkbox) and last (action) columns
+    }
+  },
+  {
+    extend: 'excel',
+    className: 'btn-default',
+    text: excelButtonTrans,
+    exportOptions: {
+      columns: ':visible:not(:first-child):not(:last-child)' // Exclude first (checkbox) and last (action) columns
+    }
+  },
+  {
+    extend: 'print',
+    className: 'btn-default',
+    text: printButtonTrans,
+    exportOptions: {
+      columns: ':visible:not(:first-child):not(:last-child)' // Exclude first (checkbox) and last (action) columns
+    }
+  },
+  {
+    extend: 'colvis',
+    className: 'btn-default',
+    text: colvisButtonTrans,
+    exportOptions: {
+      columns: ':visible'
+    }
+  }]
+});
+
 
       $.fn.dataTable.ext.classes.sPageButton = '';
     });

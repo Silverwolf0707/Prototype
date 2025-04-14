@@ -32,7 +32,7 @@
             </div>
             <div class="form-group">
                 <label class="required" for="control_number">{{ trans('cruds.patientRecord.fields.control_number') }}</label>
-                <input class="form-control {{ $errors->has('control_number') ? 'is-invalid' : '' }}" type="text" name="control_number" id="control_number" value="{{ old('control_number', $patientRecord->control_number) }}" required>
+                <input class="form-control {{ $errors->has('control_number') ? 'is-invalid' : '' }}" type="text" name="control_number" id="control_number" value="{{ old('control_number', $patientRecord->control_number) }}" readonly required>
                 @if($errors->has('control_number'))
                     <div class="invalid-feedback">
                         {{ $errors->first('control_number') }}
@@ -117,7 +117,7 @@
             </div>
             <div class="form-group">
                 <label class="required" for="case_worker">{{ trans('cruds.patientRecord.fields.case_worker') }}</label>
-                <input class="form-control {{ $errors->has('case_worker') ? 'is-invalid' : '' }}" type="text" name="case_worker" id="case_worker" value="{{ old('case_worker', $patientRecord->case_worker) }}" required>
+                <input class="form-control {{ $errors->has('case_worker') ? 'is-invalid' : '' }}" type="text" name="case_worker" id="case_worker" value="{{ old('case_worker', $patientRecord->case_worker) }}" readonly>
                 @if($errors->has('case_worker'))
                     <div class="invalid-feedback">
                         {{ $errors->first('case_worker') }}
