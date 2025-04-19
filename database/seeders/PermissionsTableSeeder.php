@@ -110,6 +110,18 @@ class PermissionsTableSeeder extends Seeder
                 'id'    => 25,
                 'title' => 'profile_password_edit',
             ],
+            [
+                'id'    => 26,
+                'title' => 'process_tracking_access',
+            ],
+            [
+                'id'    => 27,
+                'title' => 'approve_patient',
+            ],
+            [
+                'id'    => 28,
+                'title' => 'reject_patient',
+            ],
         ];
 
         Permission::insert($permissions);

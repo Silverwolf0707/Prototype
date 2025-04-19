@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Models\PatientRecord;
+use App\Models\PatientStatusLog;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
 use LaravelDaily\LaravelCharts\Classes\LaravelChart;
@@ -68,8 +69,7 @@ class HomeController
             $totalBurialPatient = PatientRecord::where('case_category', 'Burial Assistance')->count();
             $totalEducationalPatient = PatientRecord::where('case_category', 'Educational Assistance')->count();
             $totalMedicalPatient = PatientRecord::where('case_category', 'Medical Assistance')->count();
-            $totalSubmitted = PatientRecord::where('status', 'Submitted')->count();
-
+            $totalApproved = PatientStatusLog::where('status', 'Approved')->count();
             // bar charts
             $barchartSettings = [
                 'chart_title'           => 'Patients Per Barangay',
@@ -130,7 +130,7 @@ class HomeController
             'totalPatients', 
             'totalBurialPatient', 
             'totalEducationalPatient', 
-            'totalMedicalPatient', 'barangayChart','lineChart','availableYears','totalSubmitted'));
+            'totalMedicalPatient', 'barangayChart','lineChart','availableYears','totalApproved'));
         }
     }
 }

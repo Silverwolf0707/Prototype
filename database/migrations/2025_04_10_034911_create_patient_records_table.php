@@ -24,7 +24,6 @@ class CreatePatientRecordsTable extends Migration
             $table->string('address');
             $table->string('contact_number');
             $table->string('case_worker');
-            $table->string('status');
             $table->timestamps();
             $table->softDeletes();
         });

@@ -71,7 +71,7 @@
 
                             </td>
                             <td>
-                                {{ $patientRecord->date_processed ?? '' }}
+                                {{ \Carbon\Carbon::parse($patientRecord->date_processed)->format('F j, Y g:i A') }}
                             </td>
                             <td>
                                 {{ $patientRecord->case_type ?? '' }}

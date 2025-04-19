@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Admin\HomeController;
+use App\Http\Controllers\Admin\OnlineApplicationController;
 use App\Http\Controllers\Admin\PermissionsController;
 use App\Http\Controllers\Admin\RolesController;
 use App\Http\Controllers\Admin\UsersController;
@@ -12,6 +13,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\ChangePasswordController;
 
 Route::redirect('/', '/login');
+Route::get('/online-application', [OnlineApplicationController::class, 'index'])->name('online-application.index');
 
 Route::get('/home', function () {
     if (session('status')) {
@@ -51,8 +53,9 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.', 'middleware' => ['auth']], 
     //process tracking
     Route::resource('process-tracking', ProcessTrackingController::class)->only(['index', 'show']);
     Route::post('process-tracking/{id}/approve', [ProcessTrackingController::class, 'approve'])->name('process-tracking.approve');
+    Route::post('process-tracking/{id}/reject', [ProcessTrackingController::class, 'reject'])->name('process-tracking.reject');
 
-    
+
 });
 
 Route::group(['prefix' => 'profile', 'as' => 'profile.', 'middleware' => ['auth']], function () {

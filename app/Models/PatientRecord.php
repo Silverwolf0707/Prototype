@@ -43,7 +43,7 @@ class PatientRecord extends Model
         'created_at',
         'updated_at',
         'deleted_at',
-        'status',
+
     ];
 
     protected function serializeDate(DateTimeInterface $date)
@@ -61,23 +61,72 @@ class PatientRecord extends Model
         $this->attributes['date_processed'] = $value ? Carbon::createFromFormat(config('panel.date_format') . ' ' . config('panel.time_format'), $value)->format('Y-m-d H:i:s') : null;
     }
     public function getBarangayAttribute()
-{
-    $barangays = [
-        'Bagong Silang', 'Calendola', 'Chrysanthemum', 'Cuyab', 'Estrella', 'Fatima', 'GSIS', 'Landayan',
-        'Langgam', 'Laram', 'Magsaysay', 'Maharlika', 'Narra', 'Nueva', 'Pacita 1', 'Pacita 2',
-        'Poblacion', 'Riverside', 'Rosario', 'Sampaguita', 'San Antonio', 'San Isidro', 'San Lorenzo Ruiz',
-        'San Roque', 'San Vicente', 'Santo Niño', 'United Bayanihan', 'United Better Living'
-    ];
+    {
+        $barangays = [
+            'Bagong Silang',
+            'Calendola',
+            'Chrysanthemum',
+            'Cuyab',
+            'Estrella',
+            'Fatima',
+            'GSIS',
+            'Landayan',
+            'Langgam',
+            'Laram',
+            'Magsaysay',
+            'Maharlika',
+            'Narra',
+            'Nueva',
+            'Pacita 1',
+            'Pacita 2',
+            'Poblacion',
+            'Riverside',
+            'Rosario',
+            'Sampaguita',
+            'San Antonio',
+            'San Isidro',
+            'San Lorenzo Ruiz',
+            'San Roque',
+            'San Vicente',
+            'Santo Niño',
+            'United Bayanihan',
+            'United Better Living'
+        ];
 
-    $address = strtolower($this->address);
+        $address = strtolower($this->address);
 
-    foreach ($barangays as $brgy) {
-        if (str_contains($address, strtolower($brgy))) {
-            return $brgy;
+        foreach ($barangays as $brgy) {
+            if (str_contains($address, strtolower($brgy))) {
+                return $brgy;
+            }
         }
+
+        return 'Unknown';
+    }
+    // app/Models/PatientRecord.php
+
+    // public function statusLogs()
+    // {
+    //     return $this->hasMany(PatientStatusLog::class, 'patient_id');
+    // }
+
+    public function latestStatusLog()
+    {
+        return $this->hasOne(PatientStatusLog::class, 'patient_id')->latestOfMany();
     }
 
-    return 'Unknown';
-}
-
+    public function statusLogs()
+    {
+        return $this->hasMany(PatientStatusLog::class, 'patient_id')->orderBy('created_at');
+    }
+    protected static function booted()
+    {
+        static::deleting(function ($patient) {
+            if (!$patient->isForceDeleting()) {
+                $patient->statusLogs()->each(function ($log) {
+                    $log->delete();
+                });
+            }
+        });
+    }    
 }

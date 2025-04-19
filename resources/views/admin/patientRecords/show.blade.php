@@ -9,9 +9,6 @@
     <div class="card-body">
         <div class="form-group">
             <div class="form-group">
-                <a class="btn btn-default" href="{{ route('admin.patient-records.index') }}">
-                    {{ trans('global.back_to_list') }}
-                </a>
             </div>
             <table class="table table-bordered table-striped">
                 <tbody>
@@ -20,7 +17,7 @@
                             {{ trans('cruds.patientRecord.fields.date_processed') }}
                         </th>
                         <td>
-                            {{ $patientRecord->date_processed }}
+                            {{ \Carbon\Carbon::parse($patientRecord->date_processed)->format('F j, Y g:i A') }}
                         </td>
                     </tr>
                     <tr>

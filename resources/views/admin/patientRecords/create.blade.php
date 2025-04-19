@@ -5,18 +5,19 @@
     <div class="card-header">
         {{ trans('global.create') }} {{ trans('cruds.patientRecord.title_singular') }}
     </div>
+    @if(session('error'))
+    <div class="alert alert-danger">
+        {{ session('error') }}
+    </div>
+@endif
+
 
     <div class="card-body">
         <form method="POST" action="{{ route("admin.patient-records.store") }}" enctype="multipart/form-data">
             @csrf
             <div class="form-group">
                 <label class="required" for="date_processed">{{ trans('cruds.patientRecord.fields.date_processed') }}</label>
-                <input class="form-control datetime {{ $errors->has('date_processed') ? 'is-invalid' : '' }}" type="text" name="date_processed" id="date_processed" value="{{ old('date_processed') }}" required>
-                @if($errors->has('date_processed'))
-                    <div class="invalid-feedback">
-                        {{ $errors->first('date_processed') }}
-                    </div>
-                @endif
+                <input class="form-control datetime{{ $errors->has('date_processed') ? 'is-invalid' : '' }}" type="text" name="date_processed" id="date_processed" value="{{ old('date_processed', $dateProcessed) }}" readonly required>
                 
             </div>
             <div class="form-group">
@@ -133,6 +134,7 @@
         </form>
     </div>
 </div>
+
 
 
 

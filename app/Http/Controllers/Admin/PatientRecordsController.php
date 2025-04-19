@@ -8,8 +8,12 @@ use App\Http\Requests\MassDestroyPatientRecordRequest;
 use App\Http\Requests\StorePatientRecordRequest;
 use App\Http\Requests\UpdatePatientRecordRequest;
 use App\Models\PatientRecord;
+use App\Models\PatientStatusLog;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Str;
 use Symfony\Component\HttpFoundation\Response;
 
 class PatientRecordsController extends Controller
@@ -34,19 +38,64 @@ class PatientRecordsController extends Controller
         $today = now()->format('Ymd');
         $controlNumber = 'CSWD-' . $today . '-' . str_pad($latestId, 4, '0', STR_PAD_LEFT);
     
-        return view('admin.patientRecords.create', compact('controlNumber'));
+        $dateProcessed = now();
+        
+        return view('admin.patientRecords.create', compact('controlNumber', 'dateProcessed'));
     }
     
 
     public function store(StorePatientRecordRequest $request)
     {
-        $request->merge([
-            'status' => $request->status ?: 'Submitted', 
-        ]);
+        // Retrieve the most recent patient record with the same name
+        $patient = PatientRecord::where('patient_name', $request->patient_name)
+            ->orderBy('date_processed', 'desc')
+            ->first();
+    
+        // If the patient exists, check the eligibility
+        if ($patient) {
+            $lastApplicationDate = Carbon::parse($patient->date_processed);
+            $nextEligibleDate = $lastApplicationDate->copy()->addMonths(6);
+            $currentDate = Carbon::now();
+    
+            if ($currentDate->lt($nextEligibleDate)) {
+                $diff = $currentDate->diff($nextEligibleDate);
+    
+                $remainingMonths = $diff->m;
+                $remainingDays = $diff->d;
+    
+                $message = 'The patient is not eligible to apply yet. Please wait for ';
+    
+                if ($remainingMonths > 0) {
+                    $message .= $remainingMonths . ' ' . Str::plural('month', $remainingMonths);
+                }
+    
+                if ($remainingMonths > 0 && $remainingDays > 0) {
+                    $message .= ' and ';
+                }
+    
+                if ($remainingDays > 0) {
+                    $message .= $remainingDays . ' ' . Str::plural('day', $remainingDays);
+                }
+    
+                return redirect()->back()->with('error', $message . '.');
+            }
+        }
+    
+        // Create the patient record if eligible
         $patientRecord = PatientRecord::create($request->all());
-
-        return redirect()->route('admin.patient-records.index');
+    
+        // Create a status log entry
+        PatientStatusLog::create([
+            'patient_id' => $patientRecord->id,
+            'status' => PatientStatusLog::STATUS_SUBMITTED,
+            'user_id' => Auth::id(),
+            'created_at' => now(),
+        ]);
+    
+        return redirect()->route('admin.patient-records.index')->with('status', 'Patient record created and submitted.');
     }
+    
+    
 
     public function edit(PatientRecord $patientRecord)
     {
@@ -89,6 +138,5 @@ class PatientRecordsController extends Controller
         return response(null, Response::HTTP_NO_CONTENT);
     }
     
-
 
 }
