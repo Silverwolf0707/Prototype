@@ -48,14 +48,17 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.', 'middleware' => ['auth']], 
     Route::delete('patient-records/destroy', [PatientRecordsController::class, 'massDestroy'])->name('patient-records.massDestroy');
     Route::post('patient-records/parse-csv-import', [PatientRecordsController::class, 'parseCsvImport'])->name('patient-records.parseCsvImport');
     Route::post('patient-records/process-csv-import', [PatientRecordsController::class, 'processCsvImport'])->name('patient-records.processCsvImport');
+    Route::post('patient-records/{id}/submit', [PatientRecordsController::class, 'submit'])->name('patient-records.submit');
     Route::resource('patient-records', PatientRecordsController::class);
+
 
     //process tracking
     Route::resource('process-tracking', ProcessTrackingController::class)->only(['index', 'show']);
-    Route::post('process-tracking/{id}/approve', [ProcessTrackingController::class, 'approve'])->name('process-tracking.approve');
-    Route::post('process-tracking/{id}/reject', [ProcessTrackingController::class, 'reject'])->name('process-tracking.reject');
-
-
+    Route::post('process-tracking/{id}/decision', [ProcessTrackingController::class, 'decision'])->name('process-tracking.decision');
+    Route::post('/process-tracking/{patient}/store-dv', [ProcessTrackingController::class, 'storeDV'])->name('process-tracking.storeDV');
+    //time series
+    Route::get('time-series', [App\Http\Controllers\Admin\TimeSeriesController::class, 'index'])->name('time-series.index');
+    Route::get('time-series/data', [App\Http\Controllers\Admin\TimeSeriesController::class, 'getData'])->name('time-series.data');
 });
 
 Route::group(['prefix' => 'profile', 'as' => 'profile.', 'middleware' => ['auth']], function () {
@@ -65,4 +68,3 @@ Route::group(['prefix' => 'profile', 'as' => 'profile.', 'middleware' => ['auth'
     Route::post('profile', [ChangePasswordController::class, 'updateProfile'])->name('password.updateProfile');
     Route::post('profile/destroy', [ChangePasswordController::class, 'destroy'])->name('password.destroyProfile');
 });
-

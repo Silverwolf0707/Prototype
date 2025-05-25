@@ -13,62 +13,68 @@ trait CsvImportTrait
     public function processCsvImport(Request $request)
     {
         try {
-            $filename = $request->input('filename', false);
-            $path = storage_path('app/private/csv_import/' . $filename);
-
-            $hasHeader = $request->input('hasHeader', false);
-
-            $fields = $request->input('fields', false);
-            $fields = array_flip(array_filter($fields));
-
-            $modelName = $request->input('modelName', false);
-            $model     = "App\Models\\" . $modelName;
+            $filename   = $request->input('filename');
+            $path       = storage_path('app/private/csv_import/' . $filename);
+            $fields     = $request->input('fields', []);
+            $fields     = array_flip(array_filter($fields));
+            $modelName  = $request->input('modelName');
+            $modelClass = "App\\Models\\" . $modelName;
 
             $reader = new SpreadsheetReader($path);
+            // Auto-detect header row
+            $reader->rewind();
+            $firstRow = $reader->current();
+            $matchCount = 0;
+            foreach ($firstRow as $cell) {
+                if (in_array(strtolower(trim($cell)), array_map('strtolower', array_keys($fields)))) {
+                    $matchCount++;
+                }
+            }
+            $skipHeader = $matchCount > 0;
+
             $insert = [];
 
-            foreach ($reader as $key => $row) {
-                if ($hasHeader && $key == 0) {
+            foreach ($reader as $index => $row) {
+                // Skip detected header
+                if ($skipHeader && $index === 0) {
                     continue;
                 }
 
                 $tmp = [];
-                foreach ($fields as $header => $k) {
-                    if (isset($row[$k])) {
-                        $value = $row[$k];
-                
-                        // If this is a datetime field, convert format
+                foreach ($fields as $header => $colIndex) {
+                    if (isset($row[$colIndex]) && $row[$colIndex] !== '') {
+                        $value = $row[$colIndex];
                         if (in_array($header, ['date_processed', 'created_at', 'updated_at'])) {
                             try {
-                                $value = Carbon::createFromFormat('m/d/Y H:i', $value)->format('Y-m-d H:i:s');
+                                $value = Carbon::createFromFormat('m/d/Y H:i', $value)
+                                               ->format('Y-m-d H:i:s');
                             } catch (\Exception $e) {
-                                // Optional: handle bad datetime format gracefully
                                 $value = null;
                             }
                         }
-                
                         $tmp[$header] = $value;
                     }
                 }
-                
 
-                if (count($tmp) > 0) {
+                // Only insert rows where all mapped fields are present
+                if (count($tmp) === count($fields)) {
                     $insert[] = $tmp;
                 }
             }
 
-            $for_insert = array_chunk($insert, 100);
-
-            foreach ($for_insert as $insert_item) {
-                $model::insert($insert_item);
+            // Insert in chunks
+            foreach (array_chunk($insert, 100) as $batch) {
+                $modelClass::insert($batch);
             }
 
             $rows  = count($insert);
             $table = Str::plural($modelName);
 
             File::delete($path);
-
-            session()->flash('message', trans('global.app_imported_rows_to_table', ['rows' => $rows, 'table' => $table]));
+            session()->flash('message', trans(
+                'global.app_imported_rows_to_table',
+                ['rows' => $rows, 'table' => $table]
+            ));
 
             return redirect($request->input('redirect'));
         } catch (\Exception $ex) {
@@ -83,32 +89,43 @@ trait CsvImportTrait
             'csv_file' => 'mimes:csv,txt',
         ]);
 
-        $path      = $file->path();
-        $hasHeader = $request->input('header', false) ? true : false;
-
+        $path    = $file->path();
         $reader  = new SpreadsheetReader($path);
         $headers = $reader->current();
-        $lines   = [];
 
-        $i = 0;
-        while ($reader->next() !== false && $i < 5) {
+        $lines = [];
+        for ($i = 1; $i <= 5; $i++) {
+            if ($reader->next() === false) {
+                break;
+            }
             $lines[] = $reader->current();
-            $i++;
         }
 
         $filename = Str::random(10) . '.csv';
         $file->storeAs('csv_import', $filename);
 
-        $modelName     = $request->input('model', false);
-        $fullModelName = "App\Models\\" . $modelName;
+        $modelName     = $request->input('model');
+        $fullModelName = "App\\Models\\" . $modelName;
 
-        $model     = new $fullModelName();
-        $fillables = $model->getFillable();
+        $model       = new $fullModelName();
+        $fillables   = $model->getFillable();
+        // Exclude timestamp fields from mapping dropdown
+        $exclude     = ['created_at', 'updated_at', 'deleted_at'];
+        $fillables   = array_filter($fillables, function($f) use ($exclude) {
+            return !in_array($f, $exclude);
+        });
 
-        $redirect = url()->previous();
-
+        $redirect  = url()->previous();
         $routeName = 'admin.' . strtolower(Str::plural(Str::kebab($modelName))) . '.processCsvImport';
 
-        return view('csvImport.parseInput', compact('headers', 'filename', 'fillables', 'hasHeader', 'modelName', 'lines', 'redirect', 'routeName'));
+        return view('csvImport.parseInput', compact(
+            'headers',
+            'filename',
+            'fillables',
+            'modelName',
+            'lines',
+            'redirect',
+            'routeName'
+        ));
     }
 }

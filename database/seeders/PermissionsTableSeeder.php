@@ -120,7 +120,11 @@ class PermissionsTableSeeder extends Seeder
             ],
             [
                 'id'    => 28,
-                'title' => 'reject_patient',
+                'title' => 'submit_patient_application',
+            ],
+            [
+                'id'    => 29,
+                'title' => 'analytics_access',
             ],
         ];
 

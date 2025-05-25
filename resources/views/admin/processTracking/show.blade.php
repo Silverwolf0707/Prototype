@@ -39,9 +39,12 @@
                                 <strong>{{ ucfirst($log->status) }}:</strong>
                                 {{ $log->user->name ?? 'System' }} -
                                 {{ \Carbon\Carbon::parse($log->created_at)->format('F j, Y g:i A') }}
+                                <em>Remarks:</em> {{ $log->remarks ?? '-' }}
+                                <br>
                             </li>
                         @endforeach
                     </ul>
+
                 </div>
             @endif
 
@@ -50,31 +53,77 @@
                 $isFinalized = in_array(optional($latestStatus)->status, ['Approved', 'Rejected']);
             @endphp
 
-            <div class="mt-4 d-flex gap-2">
-                @can('approve_patient')
-                    <form action="{{ route('admin.process-tracking.approve', $patient->id) }}" method="POST"
-                        onsubmit="return confirm('Are you sure you want to approve this application?');">
+            @can('approve_patient') {{-- Only Mayor --}}
+                @if ($latestStatus->status === 'Submitted')
+                    <form action="{{ route('admin.process-tracking.decision', $patient->id) }}" method="POST">
                         @csrf
-                        @method('POST')
-                        <button type="submit" class="btn btn-success" {{ $isFinalized ? 'disabled' : '' }}>
-                            {{ $isFinalized && optional($latestStatus)->status === 'Approved' ? 'Approved' : 'Approve' }}
-                        </button>
+                        <div class="form-group">
+                            <label for="remarks">Remarks</label>
+                            <textarea name="remarks" id="remarks" rows="3" class="form-control" required></textarea>
+                        </div>
+                        <div class="d-flex gap-2 mt-3">
+                            <button name="action" value="approve" class="btn btn-success">Approve</button>
+                            <button name="action" value="reject" class="btn btn-danger">Reject</button>
+                        </div>
                     </form>
-                @endcan
+                @elseif ($latestStatus->status === 'Rejected')
+                    <div class="alert alert-danger mt-4">
+                        <strong>Rejected</strong>
+                    </div>
+                @elseif($latestStatus->status !== 'Rejected' && 'Submitted')
+                    <div class="alert alert-success mt-4">
+                        <strong>Approved</strong>
+                    </div>
+                @endif
+            @endcan
 
-                @can('reject_patient')
-                    <form action="{{ route('admin.process-tracking.reject', $patient->id) }}" method="POST"
-                        onsubmit="return confirm('Are you sure you want to reject this application?');">
-                        @csrf
-                        @method('POST')
-                        <button type="submit" class="btn btn-danger" {{ $isFinalized ? 'disabled' : '' }}>
-                            {{ $isFinalized && optional($latestStatus)->status === 'Rejected' ? 'Rejected' : 'Reject' }}
+
+            @can('accounting_dv_input')
+                @if (!$patient->disbursementVoucher)
+                    <div class="mt-4">
+                        <!-- Button trigger modal -->
+                        <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#dvModal">
+                            Input DV
                         </button>
-                    </form>
-                @endcan
+                    </div>
 
-            </div>
+                    <!-- DV Modal -->
+                    <div class="modal fade" id="dvModal" tabindex="-1" role="dialog" aria-labelledby="dvModalLabel"
+                        aria-hidden="true">
+                        <div class="modal-dialog" role="document">
+                            <form action="{{ route('admin.process-tracking.storeDV', $patient->id) }}" method="POST">
+                                @csrf
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h5 class="modal-title" id="dvModalLabel">Enter Disbursement Voucher</h5>
+                                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                            <span aria-hidden="true">&times;</span>
+                                        </button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <div class="form-group">
+                                            <label for="dv_code">DV Code</label>
+                                            <input type="text" name="dv_code" id="dv_code" class="form-control" required>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="dv_date">DV Date</label>
+                                            <input type="date" name="dv_date" id="dv_date" class="form-control" required>
+                                        </div>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="submit" class="btn btn-success">Submit DV</button>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                @else
+                    <div class="alert alert-info mt-4">
+                        <strong>DV Code:</strong> {{ $patient->disbursementVoucher->dv_code }} <br>
+                        <strong>Date:</strong> {{ \Carbon\Carbon::parse($patient->disbursementVoucher->dv_date)->format('F j, Y') }}
+                    </div>
+                @endif
+            @endcan
 
-        </div>
-    </div>
+
 @endsection

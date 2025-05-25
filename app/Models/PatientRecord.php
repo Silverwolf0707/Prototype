@@ -117,8 +117,14 @@ class PatientRecord extends Model
 
     public function statusLogs()
     {
-        return $this->hasMany(PatientStatusLog::class, 'patient_id')->orderBy('created_at');
+        return $this->hasMany(PatientStatusLog::class, 'patient_id');
     }
+    public function disbursementVoucher()
+    {
+        return $this->hasOne(DisbursementVoucher::class, 'patient_id');
+    }
+
+
     protected static function booted()
     {
         static::deleting(function ($patient) {
@@ -128,5 +134,5 @@ class PatientRecord extends Model
                 });
             }
         });
-    }    
+    }
 }

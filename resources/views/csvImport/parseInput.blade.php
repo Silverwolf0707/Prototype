@@ -1,7 +1,6 @@
 @extends('layouts.admin')
 
 @section('content')
-
 <div class='row'>
     <div class='col-md-12'>
         <div class="card panel-default">
@@ -13,7 +12,6 @@
                 <form class="form-horizontal" method="POST" action="{{ route($routeName) }}">
                     {{ csrf_field() }}
                     <input type="hidden" name="filename" value="{{ $filename }}" />
-                    <input type="hidden" name="hasHeader" value="{{ $hasHeader }}" />
                     <input type="hidden" name="modelName" value="{{ $modelName }}" />
                     <input type="hidden" name="redirect" value="{{ $redirect }}" />
 
@@ -39,8 +37,11 @@
                                 <td>
                                     <select name="fields[{{ $key }}]">
                                         <option value=''>Please select</option>
-                                        @foreach($fillables as $k => $fillable)
-                                            <option value="{{ $fillable }}" {{ strtolower($header) === strtolower($fillable) ? 'selected' : '' }}>{{ $fillable }}</option>
+                                        @foreach($fillables as $fillable)
+                                            <option value="{{ $fillable }}" 
+                                                {{ strtolower($header) === strtolower($fillable) ? 'selected' : '' }}>
+                                                {{ $fillable }}
+                                            </option>
                                         @endforeach
                                     </select>
                                 </td>
@@ -56,5 +57,4 @@
         </div>
     </div>
 </div>
-
 @endsection

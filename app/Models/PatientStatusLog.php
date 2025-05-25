@@ -20,6 +20,7 @@ class PatientStatusLog extends Model
         'status',
         'user_id',
         'created_at',
+        'remarks',
     ];
 
 

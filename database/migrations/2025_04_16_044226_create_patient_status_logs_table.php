@@ -11,13 +11,14 @@ class CreatePatientStatusLogsTable extends Migration
         Schema::create('patient_status_logs', function (Blueprint $table) {
             $table->id();
             $table->foreignId('patient_id')
-                  ->constrained('patient_records') 
-                  ->onDelete('cascade'); 
+                ->constrained('patient_records')
+                ->onDelete('cascade');
             $table->string('status');
-            $table->unsignedBigInteger('user_id')->nullable(); 
-            $table->timestamp('created_at')->useCurrent(); 
+            $table->unsignedBigInteger('user_id')->nullable();
+            $table->text('remarks')->nullable();
+            $table->timestamp('created_at')->useCurrent();
             $table->timestamp('updated_at')->nullable();
-            $table->softDeletes(); 
+            $table->softDeletes();
         });
     }
 

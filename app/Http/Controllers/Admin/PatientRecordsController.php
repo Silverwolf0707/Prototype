@@ -85,12 +85,12 @@ class PatientRecordsController extends Controller
         $patientRecord = PatientRecord::create($request->all());
     
         // Create a status log entry
-        PatientStatusLog::create([
-            'patient_id' => $patientRecord->id,
-            'status' => PatientStatusLog::STATUS_SUBMITTED,
-            'user_id' => Auth::id(),
-            'created_at' => now(),
-        ]);
+        // PatientStatusLog::create([
+        //     'patient_id' => $patientRecord->id,
+        //     'status' => PatientStatusLog::STATUS_SUBMITTED,
+        //     'user_id' => Auth::id(),
+        //     'created_at' => now(),
+        // ]);
     
         return redirect()->route('admin.patient-records.index')->with('status', 'Patient record created and submitted.');
     }
@@ -111,12 +111,15 @@ class PatientRecordsController extends Controller
         return redirect()->route('admin.patient-records.index');
     }
 
-    public function show(PatientRecord $patientRecord)
-    {
-        abort_if(Gate::denies('patient_record_show'), Response::HTTP_FORBIDDEN, '403 Forbidden');
+public function show(PatientRecord $patientRecord)
+{
+    abort_if(Gate::denies('patient_record_show'), Response::HTTP_FORBIDDEN, '403 Forbidden');
+    
+    $latestStatus = $patientRecord->statusLogs()->orderBy('created_at', 'desc')->first();
+$hasProcessTracking = $patientRecord->statusLogs()->exists();
+    return view('admin.patientRecords.show', compact('patientRecord', 'latestStatus', 'hasProcessTracking'));
+}
 
-        return view('admin.patientRecords.show', compact('patientRecord'));
-    }
 
     public function destroy(PatientRecord $patientRecord)
     {
@@ -138,5 +141,25 @@ class PatientRecordsController extends Controller
         return response(null, Response::HTTP_NO_CONTENT);
     }
     
+public function submit(Request $request, $id)
+{
+    abort_if(Gate::denies('submit_patient_application'), Response::HTTP_FORBIDDEN, '403 Forbidden');
+
+    $request->validate([
+        'remarks' => 'required|string|max:1000',
+        'status' => 'required|string',
+    ]);
+
+    PatientStatusLog::create([
+        'patient_id' => $id,
+        'status' => PatientStatusLog::STATUS_SUBMITTED,  // "Submitted"
+        'user_id' => Auth::id(),
+        'remarks' => $request->remarks,
+        'created_at' => now(),
+    ]);
+
+    return redirect()->route('admin.patient-records.show', $id)
+                     ->with('success', 'Application submitted successfully with remarks.');
+}
 
 }
