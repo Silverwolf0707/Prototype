@@ -58,7 +58,7 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.', 'middleware' => ['auth']], 
     Route::post('/process-tracking/{patient}/store-dv', [ProcessTrackingController::class, 'storeDV'])->name('process-tracking.storeDV');
     //time series
     Route::get('time-series', [App\Http\Controllers\Admin\TimeSeriesController::class, 'index'])->name('time-series.index');
-    Route::get('time-series/data', [App\Http\Controllers\Admin\TimeSeriesController::class, 'getData'])->name('time-series.data');
+    
 });
 
 Route::group(['prefix' => 'profile', 'as' => 'profile.', 'middleware' => ['auth']], function () {
