@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use App\Models\PatientRecord;
+use App\Models\BudgetAllocation;
 use App\Models\PatientStatusLog;
 use App\Models\DisbursementVoucher;
 use Illuminate\Support\Facades\Auth;
@@ -62,36 +63,68 @@ class ProcessTrackingController extends Controller
     }
 
     public function storeDV(Request $request, $id)
-{
-    abort_if(Gate::denies('accounting_dv_input'), Response::HTTP_FORBIDDEN, '403 Forbidden');
+    {
+        abort_if(Gate::denies('accounting_dv_input'), Response::HTTP_FORBIDDEN, '403 Forbidden');
 
-    $request->validate([
-        'dv_code' => 'required|string|max:255',
-        'dv_date' => 'required|date',
-    ]);
+        $request->validate([
+            'dv_code' => 'required|string|max:255',
+            'dv_date' => 'required|date',
+        ]);
 
-    $patient = PatientRecord::findOrFail($id);
+        $patient = PatientRecord::findOrFail($id);
 
-    // Prevent multiple DV entries
-    if ($patient->disbursementVoucher) {
-        return back()->with('error', 'DV already submitted for this patient.');
+        // Prevent multiple DV entries
+        if ($patient->disbursementVoucher) {
+            return back()->with('error', 'DV already submitted for this patient.');
+        }
+
+        DisbursementVoucher::create([
+            'patient_id' => $patient->id,
+            'user_id' => Auth::id(),
+            'dv_code' => $request->dv_code,
+            'dv_date' => $request->dv_date,
+        ]);
+
+        PatientStatusLog::create([
+            'patient_id' => $patient->id,
+            'user_id' => Auth::id(),
+            'status' => 'DV Submitted',
+            'remarks' => 'DV recorded: ' . $request->dv_code,
+        ]);
+
+        return redirect()->route('admin.process-tracking.show', $id)
+            ->with('status', 'Disbursement Voucher added successfully.');
     }
+    public function storeBudget(Request $request, $id)
+    {
+        abort_if(Gate::denies('budget_allocate'), Response::HTTP_FORBIDDEN, '403 Forbidden');
 
-    DisbursementVoucher::create([
-        'patient_id' => $patient->id,
-        'user_id' => Auth::id(),
-        'dv_code' => $request->dv_code,
-        'dv_date' => $request->dv_date,
-    ]);
+        $request->validate([
+            'amount' => 'required|numeric|min:0',
+            'remarks' => 'nullable|string|max:1000',
+        ]);
 
-    PatientStatusLog::create([
-        'patient_id' => $patient->id,
-        'user_id' => Auth::id(),
-        'status' => 'DV Submitted',
-        'remarks' => 'DV recorded: ' . $request->dv_code,
-    ]);
+        $patient = PatientRecord::findOrFail($id);
 
-    return redirect()->route('admin.process-tracking.show', $id)
-        ->with('status', 'Disbursement Voucher added successfully.');
-}
+        if ($patient->budgetAllocation) {
+            return back()->with('error', 'Budget already allocated for this patient.');
+        }
+
+        BudgetAllocation::create([
+            'patient_id' => $patient->id,
+            'user_id' => Auth::id(),
+            'amount' => $request->amount,
+            'remarks' => $request->remarks,
+        ]);
+
+        PatientStatusLog::create([
+            'patient_id' => $patient->id,
+            'user_id' => Auth::id(),
+            'status' => 'Budget Allocated',
+            'remarks' => 'Budget allocated: ₱' . number_format($request->amount, 2),
+        ]);
+
+        return redirect()->route('admin.process-tracking.show', $id)
+            ->with('status', 'Budget allocated successfully.');
+    }
 }

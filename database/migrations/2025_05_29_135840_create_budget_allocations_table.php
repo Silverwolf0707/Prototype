@@ -6,24 +6,20 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
-        Schema::create('disbursement_voucher', function (Blueprint $table) {
+        Schema::create('budget_allocations', function (Blueprint $table) {
             $table->id();
             $table->foreignId('patient_id')->constrained('patient_records')->onDelete('cascade');
-            $table->foreignId('user_id')->constrained()->onDelete('cascade'); // accounting user
-            $table->string('dv_code');
-            $table->date('dv_date');
+            $table->foreignId('user_id')->constrained('users')->onDelete('cascade'); // Budget officer
+            $table->decimal('amount', 10, 2);
+            $table->text('remarks')->nullable();
             $table->timestamps();
-            $table->softDeletes();
         });
     }
 
     public function down(): void
     {
-        Schema::dropIfExists('disbursement_voucher');
+        Schema::dropIfExists('budget_allocations');
     }
 };

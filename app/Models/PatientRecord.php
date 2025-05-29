@@ -123,6 +123,12 @@ class PatientRecord extends Model
     {
         return $this->hasOne(DisbursementVoucher::class, 'patient_id');
     }
+    public function budgetAllocation()
+    {
+        return $this->hasOne(BudgetAllocation::class, 'patient_id', 'id');
+
+    }
+
 
 
     protected static function booted()

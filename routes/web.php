@@ -55,10 +55,10 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.', 'middleware' => ['auth']], 
     //process tracking
     Route::resource('process-tracking', ProcessTrackingController::class)->only(['index', 'show']);
     Route::post('process-tracking/{id}/decision', [ProcessTrackingController::class, 'decision'])->name('process-tracking.decision');
+    Route::post('process-tracking/{id}/store-budget', [ProcessTrackingController::class, 'storeBudget'])->name('process-tracking.storeBudget');
     Route::post('/process-tracking/{patient}/store-dv', [ProcessTrackingController::class, 'storeDV'])->name('process-tracking.storeDV');
     //time series
     Route::get('time-series', [App\Http\Controllers\Admin\TimeSeriesController::class, 'index'])->name('time-series.index');
-    
 });
 
 Route::group(['prefix' => 'profile', 'as' => 'profile.', 'middleware' => ['auth']], function () {

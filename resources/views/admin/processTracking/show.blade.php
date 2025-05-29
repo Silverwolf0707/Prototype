@@ -70,7 +70,7 @@
                     <div class="alert alert-danger mt-4">
                         <strong>Rejected</strong>
                     </div>
-                @elseif($latestStatus->status !== 'Rejected' && 'Submitted')
+                @elseif($latestStatus->status !== 'Rejected' && $latestStatus->status === 'Approved')
                     <div class="alert alert-success mt-4">
                         <strong>Approved</strong>
                     </div>
@@ -78,15 +78,56 @@
             @endcan
 
 
-            @can('accounting_dv_input')
-                @if (!$patient->disbursementVoucher)
+            @can('budget_allocate')
+                @if ($latestStatus->status === 'Approved' && !$patient->budgetAllocation)
                     <div class="mt-4">
-                        <!-- Button trigger modal -->
-                        <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#dvModal">
-                            Input DV
+                        <button type="button" class="btn btn-warning" data-toggle="modal" data-target="#budgetModal">
+                            Allocate Budget
                         </button>
                     </div>
 
+                    <div class="modal fade" id="budgetModal" tabindex="-1" role="dialog" aria-labelledby="budgetModalLabel"
+                        aria-hidden="true">
+                        <div class="modal-dialog" role="document">
+                            <form action="{{ route('admin.process-tracking.storeBudget', $patient->id) }}" method="POST">
+                                @csrf
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h5 class="modal-title" id="budgetModalLabel">Allocate Budget</h5>
+                                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                            <span aria-hidden="true">&times;</span>
+                                        </button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <div class="form-group">
+                                            <label for="amount">Amount (₱)</label>
+                                            <input type="number" step="0.01" name="amount" id="amount" class="form-control"
+                                                required>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="remarks">Remarks</label>
+                                            <textarea name="remarks" id="remarks" class="form-control" rows="3"></textarea>
+                                        </div>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="submit" class="btn btn-success">Allocate</button>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+
+                @elseif($patient->budgetAllocation)
+                    <div class="alert alert-info mt-4">
+                        <strong>Allocated Budget:</strong> ₱{{ number_format($patient->budgetAllocation->amount, 2) }} <br>
+                        <strong>Remarks:</strong> {{ $patient->budgetAllocation->remarks }}
+                    </div>
+                @endif
+            @endcan
+
+
+            @can('accounting_input_dv')
+                @if ($latestStatus->status === 'Budget Allocated' && !$patient->disbursementVoucher)
                     <!-- DV Modal -->
                     <div class="modal fade" id="dvModal" tabindex="-1" role="dialog" aria-labelledby="dvModalLabel"
                         aria-hidden="true">
@@ -117,13 +158,14 @@
                             </form>
                         </div>
                     </div>
-                @else
+                @elseif ($patient->disbursementVoucher)
                     <div class="alert alert-info mt-4">
                         <strong>DV Code:</strong> {{ $patient->disbursementVoucher->dv_code }} <br>
                         <strong>Date:</strong> {{ \Carbon\Carbon::parse($patient->disbursementVoucher->dv_date)->format('F j, Y') }}
                     </div>
                 @endif
             @endcan
+
 
 
 @endsection
