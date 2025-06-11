@@ -132,7 +132,7 @@ class PermissionsTableSeeder extends Seeder
             ],
                         [
                 'id' =>31,
-                'title' => 'accounting_input_dv',
+                'title' => 'accounting_dv_input',
             ]
         ];
         Permission::insert($permissions);
