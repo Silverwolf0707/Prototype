@@ -32,7 +32,7 @@
 
             @include('admin.timeseries.report')
         </div>
-         <div class="card-header">
+        <div class="card-header">
             <h5 class="mb-1">{{ __('Statistical Analysis') }}</h5>
             <small class="text-muted">Visualize mean, media, mode, variance, standard deviation of applicant age</small>
             <div class="card-body">
@@ -276,41 +276,88 @@
             const min = arr => Math.min(...arr);
 
             const observed = dataset.observed;
+            const trend = dataset.trend;
+            const seasonal = dataset.seasonal;
+            const residual = dataset.residual;
             const dates = dataset.dates;
-            const maxValue = max(observed);
-            const minValue = min(observed);
-            const maxIndex = observed.indexOf(maxValue);
-            const minIndex = observed.indexOf(minValue);
+
             const average = avg(observed).toFixed(2);
 
-            const trendChange = dataset.trend[dataset.trend.length - 1] - dataset.trend[0];
-            const trendDirection = trendChange > 0
-                ? "an overall increase in applications"
-                : trendChange < 0
-                    ? "a general decline in applications"
-                    : "a stable application pattern";
+            // PEAK: Get max value and all months with that value
+            const maxValue = max(observed);
+            const peakMonths = observed
+                .map((val, i) => (val === maxValue ? dates[i] : null))
+                .filter(date => date !== null);
 
-            const seasonalRange = max(dataset.seasonal) - min(dataset.seasonal);
-            const seasonality = seasonalRange > 10
-                ? "strong seasonal effects — application counts rise and fall at regular intervals"
-                : "minimal seasonal effects";
+            // LOWEST (non-zero): Filter out zero values, then get min and all months with that value
+            const nonZeroObserved = observed
+                .map((val, i) => ({ val, i }))
+                .filter(item => item.val > 0);
 
-            const residualVariance = avg(dataset.residual.map(r => r * r)).toFixed(2);
-            const noiseLevel = residualVariance > 100
-                ? "a lot of irregular fluctuations"
-                : "relatively stable patterns with minor random variations";
+            let minValue, lowMonths;
+            if (nonZeroObserved.length > 0) {
+                minValue = Math.min(...nonZeroObserved.map(item => item.val));
+                lowMonths = nonZeroObserved
+                    .filter(item => item.val === minValue)
+                    .map(item => dates[item.i]);
+            } else {
+                minValue = 0;
+                lowMonths = observed
+                    .map((val, i) => (val === 0 ? dates[i] : null))
+                    .filter(date => date !== null);
+            }
+
+            // Trend interpretation
+            const trendDirection = trend[trend.length - 1] - trend[0];
+            let trendInsight = '';
+            if (trendDirection > 5) {
+                trendInsight = 'There is a steady increase in applications over time.';
+            } else if (trendDirection < -5) {
+                trendInsight = 'There is a noticeable decline in applications over time.';
+            } else {
+                trendInsight = 'Applications have remained mostly stable over the selected period.';
+            }
+
+            // Seasonal interpretation
+            const seasonalRange = max(seasonal) - min(seasonal);
+            const seasonalityInsight = seasonalRange > 5
+                ? 'There are clear seasonal effects—certain months consistently have more applications.'
+                : 'Seasonal patterns are mild or negligible.';
+
+            // Residual interpretation
+            const residualMax = Math.max(...residual.map(Math.abs));
+            const residualInsight = residualMax > 10
+                ? 'There are large short-term fluctuations in the data, possibly due to irregular events.'
+                : 'Short-term changes are small, indicating consistent application trends.';
+
+            // Format multiple months
+            const formatMonths = months => months.join(', ');
 
             summaryContent.innerHTML = `
-                            <li class="list-group-item"><strong>Average Applications per Month:</strong> ${average}</li>
-                            <li class="list-group-item"><strong>Peak Applications:</strong> ${maxValue} in ${dates[maxIndex]}</li>
-                            <li class="list-group-item"><strong>Lowest Applications:</strong> ${minValue} in ${dates[minIndex]}</li>
-                            <li class="list-group-item"><strong>Trend Insight:</strong> ${trendDirection}, indicating changes in overall demand over time.</li>
-                            <li class="list-group-item"><strong>Seasonal Pattern:</strong> ${seasonality}, showing how application volume changes with time of year.</li>
-                            <li class="list-group-item"><strong>Residual Analysis:</strong> ${noiseLevel}, representing unexpected or random variations.</li>
-                        `;
+            <li class="list-group-item">
+                <strong>Average Applications per Month:</strong> ${average}
+            </li>
+            <li class="list-group-item">
+                <strong>Peak Applications:</strong> ${maxValue} in ${formatMonths(peakMonths)}
+            </li>
+            <li class="list-group-item">
+                <strong>Lowest Applications:</strong> ${minValue} in ${formatMonths(lowMonths)}
+            </li>
+            <li class="list-group-item">
+                <strong>Trend Insight:</strong> ${trendInsight}
+            </li>
+            <li class="list-group-item">
+                <strong>Seasonality Insight:</strong> ${seasonalityInsight}
+            </li>
+            <li class="list-group-item">
+                <strong>Residual Insight:</strong> ${residualInsight}
+            </li>
+        `;
 
             summaryContainer.style.display = 'block';
         }
+
+
 
 
         function interpretTrend(trend) {
@@ -372,22 +419,22 @@
 
 
                         list.innerHTML = `
-                            <li class="list-group-item">
-                                <strong>Average Age:</strong> The average age of applicants in ${data.year} is <strong>${data.mean}</strong>.
-                            </li>
-                            <li class="list-group-item">
-                                <strong>Median Age:</strong> The typical applicant is around <strong>${data.median}</strong> years old, suggesting most are <strong>${ageGroup}</strong>.
-                            </li>
-                            <li class="list-group-item">
-                                <strong>Most Common Age:</strong> The most frequent age among applicants is <strong>${data.mode}</strong>.
-                            </li>
-                            <li class="list-group-item">
-                                <strong>Age Variance:</strong> ${data.variance} — ${varianceDescription}.
-                            </li>
-                            <li class="list-group-item">
-                                <strong>Standard Deviation:</strong> ~<strong>${data.standard_deviation}</strong> years — ${sdDescription}.
-                            </li>
-                        `;
+                                        <li class="list-group-item">
+                                            <strong>Average Age:</strong> The average age of applicants in ${data.year} is <strong>${data.mean}</strong>.
+                                        </li>
+                                        <li class="list-group-item">
+                                            <strong>Median Age:</strong> The typical applicant is around <strong>${data.median}</strong> years old, suggesting most are <strong>${ageGroup}</strong>.
+                                        </li>
+                                        <li class="list-group-item">
+                                            <strong>Most Common Age:</strong> The most frequent age among applicants is <strong>${data.mode}</strong>.
+                                        </li>
+                                        <li class="list-group-item">
+                                            <strong>Age Variance:</strong> ${data.variance} — ${varianceDescription}.
+                                        </li>
+                                        <li class="list-group-item">
+                                            <strong>Standard Deviation:</strong> ~<strong>${data.standard_deviation}</strong> years — ${sdDescription}.
+                                        </li>
+                                    `;
 
 
 
